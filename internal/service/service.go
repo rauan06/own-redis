@@ -48,6 +48,10 @@ func ParseInput(input []byte) (*models.Messege, error) {
 				return nil, fmt.Errorf("(error) ERR PX value isn't a nubmer")
 			}
 
+			if n < 0 {
+				return nil, fmt.Errorf("(error) ERR PX value cannot be negative")
+			}
+
 			msg.PX = time.Duration(n) * time.Millisecond
 		}
 
@@ -58,12 +62,20 @@ func ParseInput(input []byte) (*models.Messege, error) {
 			return nil, fmt.Errorf("(error) ERR wrong number of arguments for 'GET' command")
 		}
 		msg.Key = args[1]
-		fmt.Println(*msg)
 
 		return msg, nil
 
 	default:
 		return nil, fmt.Errorf("(error) ERR invalid command")
+	}
+}
+
+func ChanTimer(model *models.AsyncMap, key string, expiration time.Duration) {
+	time.Sleep(expiration)
+	ch, exists := model.Map[key]
+	if exists {
+		close(ch)
+		delete(model.Map, key)
 	}
 }
 

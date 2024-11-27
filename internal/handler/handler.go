@@ -36,11 +36,16 @@ func ServerHandle(conn *net.UDPConn) {
 				dal.Data.Map[msg.Key] <- msg.Value
 				service.HandleOK(conn, addr, "successfully added a new data")
 
+				if msg.PX != 0 {
+					go service.ChanTimer(dal.Data, msg.Key, msg.PX)
+				}
 			case "get":
 				if _, ok := dal.Data.Map[msg.Key]; !ok {
 					service.HandleGet(conn, addr, "successfully returned (nil) on invalid key", "(nil)")
 				} else {
-					service.HandleGet(conn, addr, "successfully returned value on valid key", <-dal.Data.Map[msg.Key])
+					item := <-dal.Data.Map[msg.Key]
+					dal.Data.Map[msg.Key] <- item
+					service.HandleGet(conn, addr, "successfully returned value on valid key", item)
 				}
 			}
 		}()
