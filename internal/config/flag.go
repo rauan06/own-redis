@@ -44,11 +44,11 @@ func validateConfig(config *models.Config, help bool) error {
 }
 
 func printUsage() {
-	fmt.Println(`Zip Files Management System
+	fmt.Println(`Own Redis
 
 Usage:
-  doodocs-zip [--port <N>] [--env <S>]
-  doodocs-zip --help
+  own-redis [--port <N>]
+  own-redis --help
 
 Options:
   --help       Show this screen.
