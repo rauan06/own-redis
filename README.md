@@ -1,11 +1,8 @@
 # own-redis
 
-## Mandatory Part
+## Abstract
 
-Writing a key-value store via REST API would be too easy, wouldn't it? Let's make it a bit more complicated and let the client and your application communicate using the UDP protocol, i.e. each request and response is a single UDP packet. In our key-value store implementation you have to implement three methods SET, GET and PING. SET puts a key-value and GET gets and returns the given value back to the client. The PING command verifies that the storage is working.
-
-NOTE:
-- Command names, command arguments are  case-insensitive. So `PING`, `ping` and `Ping` are all valid and denote the same command.
+A custom key-value database. Such databases are essential for efficiently storing and retrieving data using unique keys. This application will operate in RAM for fast access, utilizing the UDP protocol to facilitate communication between the storage and the client. Key operations will include SET, GET, and PING.
 
 ### PING
 
@@ -94,9 +91,6 @@ Buz
 ```
 
 ### Usage
-Outcomes:
-
-- Program prints usage text.
 
 ```shell
 $ ./own-redis --help
