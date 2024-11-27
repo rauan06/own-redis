@@ -11,96 +11,128 @@ import (
 	"github.com/rauan06/own-redis/models"
 )
 
+// ParseInput processes the input byte slice and returns a parsed Message or an error.
 func ParseInput(input []byte) (*models.Messege, error) {
-	args := strings.SplitAfter(string(input), " ")
-
+	args := strings.Fields(string(input))
 	if len(args) == 0 {
 		return nil, fmt.Errorf("(error) ERR empty input")
 	}
 
-	for i := range args {
-		args[i] = strings.TrimSpace(args[i])
-	}
-
 	cmd := strings.ToLower(args[0])
-	msg := &models.Messege{}
-	msg.Cmd = cmd
-	msg.PX = 0
+	msg := &models.Messege{
+		Cmd: cmd,
+		PX:  0,
+	}
 
 	switch cmd {
 	case "ping":
 		return msg, nil
 	case "set":
-		if len(args) != 3 && len(args) != 5 {
-			return nil, fmt.Errorf("(error) ERR wrong number of arguments for 'SET' command")
-		}
-
-		msg.Key = args[1]
-		msg.Value = args[2]
-
-		if len(args) == 5 {
-			if args[3] != "px" {
-				return nil, fmt.Errorf("(error) ERR incorrect arguments")
-			}
-
-			n, err := strconv.Atoi(args[4])
-			if err != nil {
-				return nil, fmt.Errorf("(error) ERR PX value isn't a nubmer")
-			}
-
-			if n < 0 {
-				return nil, fmt.Errorf("(error) ERR PX value cannot be negative")
-			}
-
-			msg.PX = time.Duration(n) * time.Millisecond
-		}
-
-		return msg, nil
-
+		return parseSetCommand(args, msg)
 	case "get":
-		if len(args) != 2 {
-			return nil, fmt.Errorf("(error) ERR wrong number of arguments for 'GET' command")
-		}
-		msg.Key = args[1]
-
-		return msg, nil
-
+		return parseGetCommand(args, msg)
 	default:
 		return nil, fmt.Errorf("(error) ERR invalid command")
 	}
 }
 
+func parseSetCommand(args []string, msg *models.Messege) (*models.Messege, error) {
+	if len(args) < 3 {
+		return nil, fmt.Errorf("(error) ERR wrong number of arguments for 'SET' command")
+	}
+
+	msg.Key = args[1]
+	msg.Value = parseSetValue(args)
+	if pxIndex := findPxIndex(args); pxIndex != -1 {
+		if err := setPxValue(args, pxIndex, msg); err != nil {
+			return nil, err
+		}
+	}
+	return msg, nil
+}
+
+func parseGetCommand(args []string, msg *models.Messege) (*models.Messege, error) {
+	if len(args) != 2 {
+		return nil, fmt.Errorf("(error) ERR wrong number of arguments for 'GET' command")
+	}
+	msg.Key = args[1]
+	return msg, nil
+}
+
+func parseSetValue(args []string) string {
+	var valueBuilder strings.Builder
+	for i := 2; i < len(args); i++ {
+		if args[i] != "px" {
+			valueBuilder.WriteString(" " + args[i])
+		} else {
+			break
+		}
+	}
+	return strings.TrimSpace(valueBuilder.String())
+}
+
+func findPxIndex(args []string) int {
+	for i, arg := range args {
+		if arg == "px" {
+			return i
+		}
+	}
+	return -1
+}
+
+func setPxValue(args []string, pxIndex int, msg *models.Messege) error {
+	if len(args) <= pxIndex+1 {
+		return fmt.Errorf("(error) ERR missing PX value")
+	}
+
+	n, err := strconv.Atoi(args[pxIndex+1])
+	if err != nil {
+		return fmt.Errorf("(error) ERR PX value isn't a number")
+	}
+
+	if n < 0 {
+		return fmt.Errorf("(error) ERR PX value cannot be negative")
+	}
+
+	msg.PX = time.Duration(n) * time.Millisecond
+	return nil
+}
+
+// ChanTimer waits for the expiration time and closes the channel if it exists.
 func ChanTimer(model *models.AsyncMap, key string, expiration time.Duration) {
 	time.Sleep(expiration)
-	ch, exists := model.Map[key]
-	if exists {
+	if ch, exists := model.Map[key]; exists {
 		close(ch)
 		delete(model.Map, key)
 	}
 }
 
+// HandleErr logs the error and writes the error message to the UDP connection.
 func HandleErr(conn *net.UDPConn, addr *net.UDPAddr, msg string, err error) {
-	slog.Error(msg, slog.String("error", fmt.Sprint(err)))
-
-	if err = writeToUDP(conn, addr, []byte(fmt.Sprint(err)+"\n")); err != nil {
-		slog.Error("error writing to connection", slog.String("error", fmt.Sprint(err)))
-	}
+	logError(msg, err)
+	writeResponseToUDP(conn, addr, fmt.Sprint(err))
 }
 
+// HandleOK logs the success message and writes "OK" to the UDP connection.
 func HandleOK(conn *net.UDPConn, addr *net.UDPAddr, msg string) {
 	slog.Error(msg, slog.String("status", "OK"))
+	writeResponseToUDP(conn, addr, "OK")
+}
 
-	if err := writeToUDP(conn, addr, []byte("OK\n")); err != nil {
-		slog.Error("error writing to connection", slog.String("error", fmt.Sprint(err)))
+// HandleGet logs the GET result and writes the returned value to the UDP connection.
+func HandleGet(conn *net.UDPConn, addr *net.UDPAddr, msg string, value string) {
+	slog.Error(msg, slog.String("returned", value))
+	writeResponseToUDP(conn, addr, value)
+}
+
+func writeResponseToUDP(conn *net.UDPConn, addr *net.UDPAddr, response string) {
+	if err := writeToUDP(conn, addr, []byte(response+"\n")); err != nil {
+		logError("error writing to connection", err)
 	}
 }
 
-func HandleGet(conn *net.UDPConn, addr *net.UDPAddr, msg string, value string) {
-	slog.Error(msg, slog.String("returned", value))
-
-	if err := writeToUDP(conn, addr, []byte(value+"\n")); err != nil {
-		slog.Error("error writing to connection", slog.String("error", fmt.Sprint(err)))
-	}
+func logError(msg string, err error) {
+	slog.Error(msg, slog.String("error", fmt.Sprint(err)))
 }
 
 func writeToUDP(conn *net.UDPConn, addr *net.UDPAddr, buffer []byte) error {
