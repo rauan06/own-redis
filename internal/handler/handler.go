@@ -19,7 +19,6 @@ func ServerHandle(conn *net.UDPConn) {
 
 		go func() {
 			msg, err := service.ParseInput(buffer[:n])
-
 			if err != nil {
 				service.HandleErr(conn, addr, "error parsing inputs", err)
 				return
