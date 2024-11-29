@@ -52,7 +52,7 @@ func handleSet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
 	service.HandleOK(conn, addr, "successfully added a new data")
 
 	if msg.PX != 0 {
-		go service.ChanTimer(dal.Data, msg.Key, msg.PX)
+		service.ChanTimer(dal.Data, msg.Key, msg.PX)
 	}
 }
 
