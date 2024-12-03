@@ -100,10 +100,14 @@ func setPxValue(args []string, pxIndex int, msg *models.Messege) error {
 
 // ChanTimer waits for the expiration time and closes the channel if it exists.
 func ChanTimer(model *models.AsyncMap, key string, expiration time.Duration) {
-	time.Sleep(expiration)
-	if ch, exists := model.Map[key]; exists {
-		close(ch)
-		delete(model.Map, key)
+	select {
+	case <-model.Map[key].Context.Done():
+		return
+	case <-time.After(expiration):
+		if pair, exists := model.Map[key]; exists {
+			close(pair.Data)
+			delete(model.Map, key)
+		}
 	}
 }
 

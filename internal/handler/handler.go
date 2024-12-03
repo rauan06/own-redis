@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net"
 
 	"github.com/rauan06/own-redis/internal/dal"
@@ -47,12 +48,28 @@ func handlePing(conn *net.UDPConn, addr *net.UDPAddr) {
 }
 
 func handleSet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
-	dal.Data.Map[msg.Key] = make(chan string, 1)
-	dal.Data.Map[msg.Key] <- msg.Value
+	// Cancel the existing context if the key already exists
+	if pair, exists := dal.Data.Map[msg.Key]; exists && pair.Context != nil {
+		pair.CancelFunc() // Cancel the existing context
+	}
+
+	// Create a new context with cancel functionality
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Store the context and the cancel function
+	dal.Data.Map[msg.Key] = &models.ChanContextPair{
+		Data:       make(chan string),
+		Context:    ctx,
+		CancelFunc: cancel,
+	}
+
+	// Send the value into the channel
+	dal.Data.Map[msg.Key].Data <- msg.Value
 	service.HandleOK(conn, addr, "successfully added a new data")
 
+	// Set expiration if PX is provided
 	if msg.PX != 0 {
-		service.ChanTimer(dal.Data, msg.Key, msg.PX)
+		go service.ChanTimer(dal.Data, msg.Key, msg.PX)
 	}
 }
 
@@ -62,7 +79,7 @@ func handleGet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
 		return
 	}
 
-	item := <-dal.Data.Map[msg.Key]
-	dal.Data.Map[msg.Key] <- item
+	item := <-dal.Data.Map[msg.Key].Data
+	dal.Data.Map[msg.Key].Data <- item
 	service.HandleGet(conn, addr, "successfully returned value on valid key", item)
 }

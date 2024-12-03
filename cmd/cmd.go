@@ -33,7 +33,7 @@ func Init() {
 	defer conn.Close()
 
 	dal.Data = &models.AsyncMap{
-		Map: make(map[string](chan string)),
+		Map: make(map[string](*models.ChanContextPair)),
 	}
 
 	handler.ServerHandle(conn)
