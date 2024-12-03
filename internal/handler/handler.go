@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net"
 
 	"github.com/rauan06/own-redis/internal/dal"
@@ -45,6 +46,7 @@ func handlePing(conn *net.UDPConn, addr *net.UDPAddr) {
 	if err != nil {
 		service.HandleErr(conn, addr, "error writing to udp", err)
 	}
+	slog.Info("successfully responded to ping with pong")
 }
 
 func handleSet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
