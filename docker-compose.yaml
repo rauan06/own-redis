@@ -1,0 +1,13 @@
+services:
+  own-redis:
+    container_name: own-redis
+    image: "own-radis:v1.0"
+    restart: always
+    networks:
+      - monitoring
+    ports:
+      - "8000:8000/udp"
+
+networks:
+  monitoring:
+    driver: bridge
