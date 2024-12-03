@@ -1,7 +1,7 @@
 services:
   own-redis:
     container_name: own-redis
-    image: "own-radis:v1.0"
+    image: "own-redis:v1.0"
     restart: always
     networks:
       - monitoring
