@@ -119,7 +119,7 @@ func HandleErr(conn *net.UDPConn, addr *net.UDPAddr, msg string, err error) {
 
 // HandleOK logs the success message and writes "OK" to the UDP connection.
 func HandleOK(conn *net.UDPConn, addr *net.UDPAddr, msg string) {
-	slog.Error(msg, slog.String("status", "OK"))
+	slog.Info(msg, slog.String("status", "OK"))
 	writeResponseToUDP(conn, addr, "OK")
 }
 
