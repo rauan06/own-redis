@@ -1,6 +1,6 @@
 services:
   own-redis:
-    container_name: upd-server
+    container_name: udp-server
     image: "own-redis:v1.0"
     restart: always
     networks:
