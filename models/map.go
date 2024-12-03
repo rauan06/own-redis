@@ -3,7 +3,7 @@ package models
 import "context"
 
 type AsyncMap struct {
-	Map map[string]*ChanContextPair
+	Map map[string]ChanContextPair
 }
 
 type ChanContextPair struct {

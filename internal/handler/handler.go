@@ -48,28 +48,23 @@ func handlePing(conn *net.UDPConn, addr *net.UDPAddr) {
 }
 
 func handleSet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
-	// Cancel the existing context if the key already exists
 	if pair, exists := dal.Data.Map[msg.Key]; exists && pair.Context != nil {
-		pair.CancelFunc() // Cancel the existing context
+		pair.CancelFunc()
 	}
 
-	// Create a new context with cancel functionality
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Store the context and the cancel function
-	dal.Data.Map[msg.Key] = &models.ChanContextPair{
-		Data:       make(chan string),
+	dal.Data.Map[msg.Key] = models.ChanContextPair{
+		Data:       make(chan string, 1),
 		Context:    ctx,
 		CancelFunc: cancel,
 	}
 
-	// Send the value into the channel
 	dal.Data.Map[msg.Key].Data <- msg.Value
 	service.HandleOK(conn, addr, "successfully added a new data")
 
-	// Set expiration if PX is provided
 	if msg.PX != 0 {
-		go service.ChanTimer(dal.Data, msg.Key, msg.PX)
+		service.ChanTimer(dal.Data, msg.Key, msg.PX)
 	}
 }
 
