@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"log/slog"
 	"net"
 
@@ -50,16 +49,13 @@ func handlePing(conn *net.UDPConn, addr *net.UDPAddr) {
 }
 
 func handleSet(conn *net.UDPConn, addr *net.UDPAddr, msg *models.Messege) {
-	if pair, exists := dal.Data.Map[msg.Key]; exists && pair.Context != nil {
-		pair.CancelFunc()
+	if pair, exists := dal.Data.Map[msg.Key]; exists {
+		close(pair.Cancel)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
 	dal.Data.Map[msg.Key] = models.ChanContextPair{
-		Data:       make(chan string, 1),
-		Context:    ctx,
-		CancelFunc: cancel,
+		Data:   make(chan string, 1),
+		Cancel: make(chan struct{}),
 	}
 
 	dal.Data.Map[msg.Key].Data <- msg.Value
