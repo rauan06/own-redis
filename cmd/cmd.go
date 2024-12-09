@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"os"
 
 	"github.com/rauan06/own-redis/internal/config"
 	"github.com/rauan06/own-redis/internal/dal"
@@ -14,6 +15,9 @@ import (
 var cfg *models.Config
 
 func Init() {
+	_, err := os.Open("123")
+	fmt.Printf("%+v\n\n", err)
+
 	cfg = config.SetupConfig()
 	slog.SetDefault(cfg.Logger)
 
