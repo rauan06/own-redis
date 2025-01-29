@@ -9,11 +9,11 @@ A simple in-memory key-value store built using Python. This project serves as a 
 ---
 
 ## 🚀 Features
-
+![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 - 🗄️ **Basic Redis-like Storage** – Store key-value pairs in memory.  
 - ⏳ **TTL Support** – Keys can have an expiration time.  
 - 📡 **Simple Client-Server Model** – Basic request-response handling.  
-- 🐍 **Go Implementation** – No external dependencies required.  
+- 	 **Go Implementation** – No external dependencies required.  
 
 ---
 ### PING
