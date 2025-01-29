@@ -1,9 +1,21 @@
-# own-redis
+# Own Redis 🛠️
 
-## Abstract
+A simple in-memory key-value store built using Python. This project serves as a minimal Redis-like implementation, supporting basic Redis commands and demonstrating fundamental data storage techniques.
 
-A custom key-value database. Such databases are essential for efficiently storing and retrieving data using unique keys. This application will operate in RAM for fast access, utilizing the UDP protocol to facilitate communication between the storage and the client. Key operations will include SET, GET, and PING.
+![GitHub last commit](https://img.shields.io/github/last-commit/rauan06/own-redis)
+![GitHub repo size](https://img.shields.io/github/repo-size/rauan06/own-redis)
+![GitHub license](https://img.shields.io/github/license/rauan06/own-redis)
 
+---
+
+## 🚀 Features
+
+- 🗄️ **Basic Redis-like Storage** – Store key-value pairs in memory.  
+- ⏳ **TTL Support** – Keys can have an expiration time.  
+- 📡 **Simple Client-Server Model** – Basic request-response handling.  
+- 🐍 **Go Implementation** – No external dependencies required.  
+
+---
 ### PING
 
 `PING` is one of the simplest Redis commands. It's used to check whether a Redis server is healthy. The response for the `PING` command is `PONG`.
