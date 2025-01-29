@@ -1,6 +1,6 @@
 # Own Redis 🛠️
 
-A simple in-memory key-value store built using Python. This project serves as a minimal Redis-like implementation, supporting basic Redis commands and demonstrating fundamental data storage techniques.
+A simple Redis-like in-memory key-value store written in **Go**. This project demonstrates basic Redis functionality such as setting, getting, and expiring keys, all implemented with a minimalistic approach.
 
 ![GitHub last commit](https://img.shields.io/github/last-commit/rauan06/own-redis)
 ![GitHub repo size](https://img.shields.io/github/repo-size/rauan06/own-redis)
@@ -9,11 +9,11 @@ A simple in-memory key-value store built using Python. This project serves as a 
 ---
 
 ## 🚀 Features
-![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
-- 🗄️ **Basic Redis-like Storage** – Store key-value pairs in memory.  
+
+- 🗄️ **In-Memory Storage** – Stores key-value pairs in memory.  
 - ⏳ **TTL Support** – Keys can have an expiration time.  
-- 📡 **Simple Client-Server Model** – Basic request-response handling.  
-- 	 **Go Implementation** – No external dependencies required.  
+- 📡 **Client-Server Architecture** – Communicate via TCP connections.  
+- ⚡ **High Performance** – Built using Go’s concurrency model.  
 
 ---
 ### PING
